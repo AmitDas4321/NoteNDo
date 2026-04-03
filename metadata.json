@@ -1,0 +1,5 @@
+{
+  "name": "NoteNDo",
+  "description": "A powerful todo app with WhatsApp reminders and image sharing capabilities.",
+  "requestFramePermissions": []
+}
