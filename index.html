@@ -4,10 +4,82 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoteNDo</title>
+    <meta name="description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
+    <meta name="keywords" content="Telegram automation, web-based panel, auto-join channels, react to posts, real-time logs" />
+    <meta name="author" content="BlueOrbit Devs" />
+    <meta name="telegram:channel" content="https://t.me/BlueOrbitDevs">
+    <meta name="theme-color" content="#BBBAB8" />
+    <meta property="og:title" content="NoteNDo" />
+    <meta property="og:description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
+    <meta property="og:image" content="https://i.postimg.cc/2Svryyd9/twitter-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NoteNDo" />
+    <meta name="twitter:description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
+    <meta name="twitter:image" content="https://i.postimg.cc/2Svryyd9/twitter-image.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+  console.log('%cStop!', 'color: red; font-size: 50px; font-weight: bold;');
+
+  console.log(
+    '%cThis is a browser feature intended for developers. If someone told you to copy and paste something here to enable a NoteNDo feature or hack into someone\'s account, it is a scam and may compromise your account security.',
+    'font-size: 16px; color: white; background-color: black; padding: 5px;'
+  );
+
+  console.log(
+    'See %chttps://t.me/BlueOrbitDevs%c for more information.',
+    'color: blue; text-decoration: underline;',
+    ''
+  );
+
+  console.log(`%c
+      ...:::::::::::::::::::...      
+ ....+*#######################*=...  
+...=############################*:...
+..-###############################:..
+..*###############################=..
+..############*- ... =*##*########=..
+..##########+.=*#####*#=.=########=..
+..#########=.*#######=.=##########=..
+..########*.+##+.*#+ -##: ########=..
+..########*.+###*. -*###: ########=..
+..#########=.*#########=.*########=..
+..##########*..######*.:##########=..
+..############*=:   -+*###########=..
+..*###############################=..
+..-###############################:..
+...-*###########################*:...
+.....=*#######################*-.....
+......::::-----------------::::......
+
+           NoteNDo
+`,
+    "font-family: monospace; font-size: 10px; line-height: 1; color: #00ffcc;"
+  );
+
+  // DevTools detection (basic)
+  (function () {
+    const devtools = /./;
+    devtools.toString = function () {
+      this.opened = true;
+    };
+
+    const check = new Function('debugger;');
+
+    setInterval(function () {
+      const wasOpened = devtools.opened;
+      devtools.opened = false;
+      check();
+
+      if (devtools.opened || wasOpened) {
+        console.clear();
+        console.log('%cDeveloper tools detected.', 'color: red; font-size: 16px;');
+      }
+    }, 1000);
+  })();
+</script>
   </body>
 </html>
 
