@@ -4,38 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="./favicon.svg" />
+
     <title>NoteNDo</title>
+
     <meta name="description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
     <meta name="keywords" content="Telegram automation, web-based panel, auto-join channels, react to posts, real-time logs" />
     <meta name="author" content="BlueOrbit Devs" />
-    <meta name="telegram:channel" content="https://t.me/BlueOrbitDevs">
+    <meta name="telegram:channel" content="https://t.me/BlueOrbitDevs" />
     <meta name="theme-color" content="#4F39F6" />
+
+    <!-- Open Graph -->
     <meta property="og:title" content="NoteNDo" />
     <meta property="og:description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
     <meta property="og:image" content="https://i.ibb.co/21XqQw5f/preview.png" />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="NoteNDo" />
     <meta name="twitter:description" content="NoteNDo is a simple and powerful to-do app that helps you organize tasks, set reminders, and stay productive every day." />
     <meta name="twitter:image" content="https://i.ibb.co/21XqQw5f/preview.png" />
+
+    <!-- Selection Control -->
+    <style>
+      body {
+        user-select: none;
+      }
+
+      input,
+      textarea {
+        user-select: text;
+      }
+    </style>
   </head>
-  <body>
+
+  <body oncontextmenu="return false;">
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
+
     <script>
-  console.log('%cStop!', 'color: red; font-size: 50px; font-weight: bold;');
+      // Smart key control (allow inside input/textarea)
+      document.addEventListener('keydown', function (e) {
+        const tag = document.activeElement.tagName.toLowerCase();
 
-  console.log(
-    '%cThis is a browser feature intended for developers. If someone told you to copy and paste something here to enable a NoteNDo feature or hack into someone\'s account, it is a scam and may compromise your account security.',
-    'font-size: 16px; color: white; background-color: black; padding: 5px;'
-  );
+        if (tag === 'input' || tag === 'textarea') return;
 
-  console.log(
-    'See %chttps://t.me/BlueOrbitDevs%c for more information.',
-    'color: blue; text-decoration: underline;',
-    ''
-  );
+        if (
+          (e.ctrlKey && ['c', 'u', 's', 'x', 'v'].includes(e.key.toLowerCase())) ||
+          e.key === 'F12'
+        ) {
+          e.preventDefault();
+        }
+      });
 
-  console.log(`%c
+      // Console Warning
+      console.log('%cStop!', 'color: red; font-size: 50px; font-weight: bold;');
+
+      console.log(
+        '%cThis is a browser feature intended for developers. If someone told you to paste code here, it may be a scam.',
+        'font-size: 16px; color: white; background-color: black; padding: 5px;'
+      );
+
+      console.log(
+        'See %chttps://t.me/BlueOrbitDevs%c for more information.',
+        'color: blue; text-decoration: underline;',
+        ''
+      );
+
+      // ASCII Logo
+      console.log(`%c
       ...:::::::::::::::::::...      
  ....+*#######################*=...  
 ...=############################*:...
@@ -57,30 +94,29 @@
 
            NoteNDo
 `,
-    "font-family: monospace; font-size: 10px; line-height: 1; color: #00ffcc;"
-  );
+        "font-family: monospace; font-size: 10px; line-height: 1; color: #00ffcc;"
+      );
 
-  // DevTools detection (basic)
-  (function () {
-    const devtools = /./;
-    devtools.toString = function () {
-      this.opened = true;
-    };
+      // DevTools Detection (basic)
+      (function () {
+        const devtools = /./;
+        devtools.toString = function () {
+          this.opened = true;
+        };
 
-    const check = new Function('debugger;');
+        const check = new Function('debugger;');
 
-    setInterval(function () {
-      const wasOpened = devtools.opened;
-      devtools.opened = false;
-      check();
+        setInterval(function () {
+          const wasOpened = devtools.opened;
+          devtools.opened = false;
+          check();
 
-      if (devtools.opened || wasOpened) {
-        console.clear();
-        console.log('%cDeveloper tools detected.', 'color: red; font-size: 16px;');
-      }
-    }, 1000);
-  })();
-</script>
+          if (devtools.opened || wasOpened) {
+            console.clear();
+            console.log('%cDeveloper tools detected.', 'color: red; font-size: 16px;');
+          }
+        }, 1000);
+      })();
+    </script>
   </body>
 </html>
-
