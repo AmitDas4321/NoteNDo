@@ -683,7 +683,7 @@ export default function App() {
             <CheckCircle className="text-white" size={48} />
           </div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">NoteNDo</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg">Organize your life with smart WhatsApp reminders.</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg">Stay organized. Never miss a task.</p>
           
           {!isOtpSent && !isCompletingProfile ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
@@ -702,7 +702,7 @@ export default function App() {
                   required
                   value={loginPhone}
                   onChange={(e) => setLoginPhone(e.target.value)}
-                  placeholder="WhatsApp Number"
+                  placeholder="••••••••••"
                   className="w-[70%] px-4 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-white"
                 />
               </div>
