@@ -55,45 +55,45 @@ http://localhost:3000
 
 ## ⚡ Core Features
 
-* ✅ Task & To-Do Management
-* 🔔 Smart Reminder System
-* 📲 WhatsApp Notifications
-* ☁️ Firebase Realtime Sync
-* 🧑 User Profile Management
-* 🖼 Media Attachment Support
-* 🌍 Timezone-aware Scheduling
-* 📱 Fully Responsive UI
+* Task & To-Do Management
+* Smart Reminder System
+* WhatsApp Notifications
+* Firebase Realtime Sync
+* User Profile Management
+* Media Attachment Support
+* Timezone-aware Scheduling
+* Fully Responsive UI
 
 ---
 
 ## 🧠 How It Works
 
-1. Create a task 📝
-2. Set reminder date & time ⏰
-3. Data stored in Firebase ☁️
-4. Background service checks reminders 🔄
-5. WhatsApp notification sent 📲
-6. Task marked as notified ✅
+1. Create a task
+2. Set reminder date & time
+3. Data stored in Firebase
+4. Background service checks reminders
+5. WhatsApp notification sent
+6. Task marked as notified
 
 ---
 
 ## 🖥️ Dashboard Sections
 
-### 📝 Tasks
+### Tasks
 
-* Create / edit / delete tasks
+* Create, edit, delete tasks
 * Mark as completed
-* Add media & descriptions
+* Add descriptions and media
 
-### 🔔 Reminders
+### Reminders
 
 * Set date & time
-* Enable / disable reminders
+* Enable or disable reminders
 * WhatsApp alerts
 
-### 👤 Profile
+### Profile
 
-* Manage user info
+* Manage user information
 * Set timezone
 
 ---
@@ -102,23 +102,23 @@ http://localhost:3000
 
 * Real-time updates
 * Reminder tracking
-* Task status (pending / done)
+* Task status (pending / completed)
 * Notification logs
 
 ---
 
 ## 🌐 API Endpoints
 
-| Endpoint                     | Description   |
-| ---------------------------- | ------------- |
-| `/api/db/todos`              | Get tasks     |
-| `/api/db/todos` (POST)       | Create task   |
-| `/api/db/todos/:id`          | Update task   |
-| `/api/db/todos/:id` (DELETE) | Delete task   |
-| `/api/db/users/:uid`         | Get user      |
-| `/api/db/users/:uid`         | Update user   |
-| `/api/whatsapp/send`         | Send WhatsApp |
-| `/api/upload`                | Upload files  |
+| Endpoint                   | Description   |
+| -------------------------- | ------------- |
+| `/api/db/todos`            | Get tasks     |
+| `/api/db/todos` (POST)     | Create task   |
+| `/api/db/todos/:id`        | Update task   |
+| `/api/db/todos/:id` DELETE | Delete task   |
+| `/api/db/users/:uid`       | Get user      |
+| `/api/db/users/:uid`       | Update user   |
+| `/api/whatsapp/send`       | Send WhatsApp |
+| `/api/upload`              | Upload files  |
 
 ---
 
@@ -133,13 +133,54 @@ http://localhost:3000
 
 ## 📦 Tech Stack
 
-* ⚛️ React
-* 🎨 Tailwind CSS
-* ⚡ Vite
-* 🧠 Node.js + Express
-* 🔥 Firebase Realtime DB
-* 📲 TextSnap API
-* 📡 Multer
+* React
+* Tailwind CSS
+* Vite
+* Node.js + Express
+* Firebase Realtime Database
+* TextSnap API
+* Multer
+
+---
+
+## 🤝 Credits & Services
+
+### TextSnap (WhatsApp API)
+
+This project is supported by TextSnap, which provides the WhatsApp messaging system used for sending real-time reminders.
+
+How to get access:
+
+1. Visit [https://textsnap.in](https://textsnap.in)
+2. Create an account
+3. Create a new instance
+4. Connect your WhatsApp using QR code
+5. Obtain your Instance ID and Access Token
+
+Used for:
+
+* Sending WhatsApp reminders
+* Media message delivery
+* Notification system
+
+---
+
+### Firebase Realtime Database
+
+Firebase is used as the backend database for storing tasks and user data.
+
+How to get started:
+
+1. Visit [https://console.firebase.google.com](https://console.firebase.google.com)
+2. Create a new project
+3. Go to Build → Realtime Database
+4. Create a database (use test mode for development)
+
+Used for:
+
+* Task storage
+* User data management
+* Real-time synchronization
 
 ---
 
@@ -147,12 +188,19 @@ http://localhost:3000
 
 ```
 NoteNDo
-├ src/
-├ server.ts
-├ package.json
-├ vite.config.ts
-├ tsconfig.json
-└ README.md
+├── assets/
+├── src/
+├── server.ts
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── Dockerfile
+├── metadata.json
+├── .env.example
+├── .gitignore
+├── README.md
+├── SPONSORS.md
 ```
 
 ---
@@ -164,19 +212,20 @@ NoteNDo
 ## 🌐 Deploy on Render
 
 1. Push to GitHub
-2. Go to Render → New Web Service
-3. Connect repo
+2. Go to Render dashboard
+3. Create a new Web Service
+4. Connect your repository
 
-### Build & Start
+### Build and Start
 
-```bash
-Build: npm install && npm run build
-Start: npm start
+```
+npm install && npm run build
+npm start
 ```
 
 ---
 
-### ⚙️ Environment Variables
+### Environment Variables
 
 ```
 APP_URL=https://your-app.onrender.com
@@ -189,7 +238,7 @@ NODE_ENV=production
 
 ---
 
-### ⚠️ Notes
+### Notes
 
 * Use dynamic port:
 
@@ -197,14 +246,14 @@ NODE_ENV=production
 const PORT = process.env.PORT || 3000;
 ```
 
-* Do NOT upload `.env`
-* Free tier may sleep (reminders pause)
+* Do not upload `.env` file
+* Free tier may sleep, affecting reminders
 
 ---
 
 ## 🖥️ Deploy on VPS (Ubuntu)
 
-### Install & Setup
+### Setup
 
 ```bash
 git clone https://github.com/yourusername/NoteNDo.git
@@ -215,20 +264,7 @@ npm run build
 
 ---
 
-### Create `.env`
-
-```
-APP_URL=http://your-ip:3000
-TEXTSNAP_INSTANCE_ID=xxx
-TEXTSNAP_ACCESS_TOKEN=xxx
-FIREBASE_DATABASE_URL=xxx
-FIREBASE_DATABASE_SECRET=xxx
-NODE_ENV=production
-```
-
----
-
-### ▶️ Run with PM2
+### Run with PM2
 
 ```bash
 npm install -g pm2
@@ -266,7 +302,7 @@ docker run -p 3000:3000 --env-file .env notendo
 ## ⚠️ Production Tips
 
 * Use VPS for 24/7 reminders
-* Secure `.env`
+* Secure environment variables
 * Use HTTPS
 * Monitor with PM2
 
@@ -289,6 +325,6 @@ MIT License © 2026 Amit Das
 ---
 
 <p align="center">
-  <b>Built with ⚡ using React & Express</b><br>
-  Made with ❤️ by <a href="https://amitdas.site">Amit Das</a>
+  <b>Built with React and Express</b><br>
+  Made by <a href="https://amitdas.site">Amit Das</a>
 </p>
