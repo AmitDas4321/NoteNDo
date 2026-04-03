@@ -5,16 +5,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy all files
 COPY . .
 
-# Build frontend (Vite)
+# Build both backend + frontend
 RUN npm run build
 
 
@@ -25,17 +21,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy only necessary files from builder
-COPY --from=builder /app /app
+# Copy only needed files
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/dist-server ./dist-server
 
-# Install only production dependencies
+# Install only production deps
 RUN npm install --omit=dev
 
-# Expose port (Render / Docker)
 EXPOSE 3000
-
-# Environment
 ENV NODE_ENV=production
 
-# Start server
-CMD ["node", "server.ts"]
+# Run compiled server
+CMD ["node", "dist-server/server.js"]
