@@ -687,11 +687,11 @@ export default function App() {
           
           {!isOtpSent && !isCompletingProfile ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
-              <div className="flex space-x-2">
+              <div className="flex gap-2 w-full">
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="px-4 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                  className="w-[30%] min-w-[90px] px-3 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-white"
                 >
                   {countries.map(c => (
                     <option key={c.code} value={c.code}>{c.code}</option>
@@ -703,7 +703,7 @@ export default function App() {
                   value={loginPhone}
                   onChange={(e) => setLoginPhone(e.target.value)}
                   placeholder="WhatsApp Number"
-                  className="flex-1 px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-[70%] px-4 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-white"
                 />
               </div>
               <button
