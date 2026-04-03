@@ -722,7 +722,10 @@ export default function App() {
                   type="text"
                   required
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                   onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setOtp(value);
+                    }}
                   placeholder="Enter 6-digit OTP"
                   className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 transition-all text-center tracking-[0.5em] text-2xl font-bold"
                   maxLength={6}
