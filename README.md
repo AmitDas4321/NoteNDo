@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/banner.jpg" alt="NoteNDo Banner" width="800">
+  <img src="./public/banner.jpg" alt="NoteNDo Banner" width="800">
 </p>
 
 <p align="center">
@@ -48,7 +48,7 @@ http://localhost:3000
 ## 📸 Preview
 
 <p align="center">
-  <img src="./assets/preview.png" alt="NoteNDo Preview" width="800">
+  <img src="./public/preview.png" alt="NoteNDo Preview" width="800">
 </p>
 
 ---
