@@ -15,7 +15,7 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        name: 'NoteNDo — Smart Task Manager',
+        name: 'NoteNDo',
         short_name: 'NoteNDo',
         description: 'Smart To-Do & Reminder App with WhatsApp Alerts',
         theme_color: '#4F39F6',
