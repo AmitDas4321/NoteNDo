@@ -256,7 +256,7 @@ async function startServer() {
             console.log(`Sending reminder for todo ${id} to ${todo.phoneNumber}`);
             
             // Send WhatsApp
-            const message = `🔔 *Reminder: ${todo.text}*\n\nThis is a friendly reminder from NoteNDo.`;
+            const message = `🔔 *Reminder: ${todo.text}*\n\n_This is a friendly reminder from NoteNDo._`;
             
             try {
               const waResponse = await fetch('https://textsnap.in/api/send', {
