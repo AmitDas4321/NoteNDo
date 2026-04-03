@@ -719,7 +719,7 @@ export default function App() {
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="relative">
                 <input
-                  type="text"
+                  type="number"
                   required
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
