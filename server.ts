@@ -16,6 +16,73 @@ async function startServer() {
 
   app.use(express.json());
 
+  // In-memory store for OTPs (for production, use Redis or a database)
+  const otpStore: Record<string, { otp: string, expires: number }> = {};
+
+  // Auth: Send OTP
+  app.post("/api/auth/send-otp", async (req, res) => {
+    try {
+      const { number } = req.body;
+      if (!number) return res.status(400).json({ error: 'Phone number is required' });
+
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP with 5-minute expiration
+      otpStore[number] = {
+        otp,
+        expires: Date.now() + 5 * 60 * 1000
+      };
+
+      // Send via WhatsApp
+      const whatsappRes = await fetch('https://textsnap.in/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          number,
+          type: 'text',
+          message: `Your NoteNDo login OTP is: ${otp}. Do not share it with anyone.`,
+          instance_id: process.env.TEXTSNAP_INSTANCE_ID,
+          access_token: process.env.TEXTSNAP_ACCESS_TOKEN,
+        }),
+      });
+
+      const data = await whatsappRes.json();
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      res.status(500).json({ error: 'Failed to send OTP' });
+    }
+  });
+
+  // Auth: Verify OTP
+  app.post("/api/auth/verify-otp", async (req, res) => {
+    try {
+      const { number, otp } = req.body;
+      if (!number || !otp) return res.status(400).json({ error: 'Number and OTP are required' });
+
+      const stored = otpStore[number];
+      if (!stored || stored.expires < Date.now()) {
+        return res.status(400).json({ error: 'OTP expired or not found' });
+      }
+
+      if (stored.otp !== otp) {
+        return res.status(400).json({ error: 'Invalid OTP' });
+      }
+
+      // Clear OTP after successful verification
+      delete otpStore[number];
+
+      // Generate a simple session token (base64 of phone + timestamp)
+      const token = Buffer.from(`${number}:${Date.now()}`).toString('base64');
+
+      res.json({ success: true, token });
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      res.status(500).json({ error: 'Verification failed' });
+    }
+  });
+
   // Proxy for WhatsApp API
   app.post("/api/whatsapp/send", async (req, res) => {
     try {
@@ -72,21 +139,43 @@ async function startServer() {
     }
   });
 
+  // Helper to get DB config
+  const getDbConfig = () => {
+    let url = process.env.FIREBASE_DATABASE_URL || "";
+    if (url.endsWith('/')) url = url.slice(0, -1);
+    return {
+      url,
+      secret: process.env.FIREBASE_DATABASE_SECRET
+    };
+  };
+
   // Proxy for Database
   app.get("/api/db/todos", async (req, res) => {
     try {
       const { userId } = req.query;
       if (!userId) return res.json({});
 
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
+      if (!dbUrl) return res.status(500).json({ error: 'Database URL not configured' });
 
       // Fetch all todos and filter manually to avoid "Missing Index" error on RTDB.
-      // This is necessary because RTDB indexes cannot be managed directly from the code.
       const url = `${dbUrl}/todos.json?auth=${dbSecret}`;
       
       const response = await fetch(url);
-      const allData = await response.json();
+      const text = await response.text();
+      
+      if (!response.ok) {
+        console.error('Firebase error:', response.status, text);
+        return res.status(response.status).json({ error: 'Firebase error', details: text });
+      }
+      
+      let allData;
+      try {
+        allData = JSON.parse(text);
+      } catch (e) {
+        console.error('Failed to parse Firebase response as JSON:', text);
+        return res.status(500).json({ error: 'Invalid response from database', details: text });
+      }
       
       if (allData && typeof allData === 'object') {
         const filtered = Object.fromEntries(
@@ -106,8 +195,7 @@ async function startServer() {
 
   app.post("/api/db/todos", async (req, res) => {
     try {
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       const response = await fetch(`${dbUrl}/todos.json?auth=${dbSecret}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,8 +212,7 @@ async function startServer() {
   app.patch("/api/db/todos/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       const response = await fetch(`${dbUrl}/todos/${id}.json?auth=${dbSecret}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -142,8 +229,7 @@ async function startServer() {
   app.delete("/api/db/todos/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       const response = await fetch(`${dbUrl}/todos/${id}.json?auth=${dbSecret}`, {
         method: 'DELETE',
       });
@@ -159,10 +245,23 @@ async function startServer() {
   app.get("/api/db/users/:uid", async (req, res) => {
     try {
       const { uid } = req.params;
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       const response = await fetch(`${dbUrl}/users/${uid}.json?auth=${dbSecret}`);
-      const data = await response.json();
+      const text = await response.text();
+
+      if (!response.ok) {
+        console.error('Firebase user fetch error:', response.status, text);
+        return res.status(response.status).json({ error: 'Firebase error', details: text });
+      }
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Failed to parse Firebase user response as JSON:', text);
+        return res.status(500).json({ error: 'Invalid response from database', details: text });
+      }
+      
       res.json(data || {});
     } catch (error) {
       console.error('Error in user profile get proxy:', error);
@@ -173,8 +272,7 @@ async function startServer() {
   app.patch("/api/db/users/:uid", async (req, res) => {
     try {
       const { uid } = req.params;
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       const response = await fetch(`${dbUrl}/users/${uid}.json?auth=${dbSecret}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -186,6 +284,11 @@ async function startServer() {
       console.error('Error in user profile patch proxy:', error);
       res.status(500).json({ error: 'Failed to update user profile' });
     }
+  });
+
+  // 404 for API routes
+  app.use("/api", (req, res) => {
+    res.status(404).json({ error: `API route not found: ${req.method} ${req.url}` });
   });
 
   // Vite middleware for development
@@ -210,8 +313,7 @@ async function startServer() {
   // Background task for reminders
   const checkReminders = async () => {
     try {
-      const dbUrl = process.env.FIREBASE_DATABASE_URL;
-      const dbSecret = process.env.FIREBASE_DATABASE_SECRET;
+      const { url: dbUrl, secret: dbSecret } = getDbConfig();
       
       if (!dbUrl || !dbSecret) {
         console.warn('Firebase DB credentials missing in env. Skipping reminders check.');
@@ -253,8 +355,6 @@ async function startServer() {
 
           // Check if it's time to send (exact match or past)
           if (currentDate > todo.reminderDate || (currentDate === todo.reminderDate && currentTime >= todo.reminderTime)) {
-            console.log(`Sending reminder for todo ${id} to ${todo.phoneNumber}`);
-            
             // Send WhatsApp
             const message = `🔔 *Reminder: ${todo.text}*\n\n_This is a friendly reminder from NoteNDo._`;
             
@@ -279,7 +379,6 @@ async function startServer() {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ reminderSent: true }),
                 });
-                console.log(`Reminder marked as sent for ${id}`);
               } else {
                 console.error(`Failed to send WhatsApp for ${id}:`, await waResponse.text());
               }

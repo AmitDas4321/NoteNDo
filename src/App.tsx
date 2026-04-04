@@ -14,6 +14,7 @@ interface CustomUser {
   timezone?: string;
   theme?: 'light' | 'dark' | 'auto';
   timeFormat?: '12h' | '24h';
+  token?: string;
 }
 
 const timezones = [
@@ -49,7 +50,6 @@ export default function App() {
   const [loginPhone, setLoginPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
   const [otp, setOtp] = useState('');
-  const [sentOtp, setSentOtp] = useState<string | null>(null);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
@@ -304,13 +304,10 @@ export default function App() {
       const currentTheme = theme;
       const root = window.document.documentElement;
       
-      console.log('Applying theme:', currentTheme);
       if (currentTheme === 'dark' || (currentTheme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         root.classList.add('dark');
-        console.log('Added dark class');
       } else {
         root.classList.remove('dark');
-        console.log('Removed dark class');
       }
     };
 
@@ -423,15 +420,17 @@ export default function App() {
     }
 
     setIsLoggingIn(true);
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
     const fullPhone = countryCode.replace('+', '') + phone;
     
     try {
-      await sendWhatsAppText(
-        fullPhone,
-        `Your NoteNDo login OTP is: ${generatedOtp}. Do not share it with anyone.`
-      );
-      setSentOtp(generatedOtp);
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: fullPhone }),
+      });
+
+      if (!response.ok) throw new Error('Failed to send OTP');
+
       setIsOtpSent(true);
       toast.success('OTP sent to your WhatsApp!');
     } catch (error) {
@@ -443,56 +442,58 @@ export default function App() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp === sentOtp) {
-      const fullPhone = countryCode.replace('+', '') + loginPhone.trim();
+    const fullPhone = countryCode.replace('+', '') + loginPhone.trim();
+    
+    try {
+      const verifyRes = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: fullPhone, otp }),
+      });
+
+      if (!verifyRes.ok) {
+        const err = await verifyRes.json();
+        throw new Error(err.error || 'Invalid OTP');
+      }
+
+      const { token } = await verifyRes.json();
       
-      try {
-        const response = await fetch(`/api/db/users/${fullPhone}`);
-        if (!response.ok) {
-          const text = await response.text();
-          console.error('Verify OTP: User profile fetch failed:', response.status, text);
-          throw new Error('Failed to fetch profile');
-        }
-        const profile = await response.json();
-        
-        if (!profile.name) {
-          // New user or missing name
-          setTempUser({
-            uid: fullPhone,
-            phoneNumber: fullPhone,
-            timezone: 'Asia/Kolkata',
-            theme: 'auto',
-            timeFormat: '12h',
-          });
-          setIsCompletingProfile(true);
-        } else {
-          // Existing user
-          const newUser: CustomUser = {
-            uid: fullPhone,
-            phoneNumber: fullPhone,
-            name: profile.name,
-            timezone: profile.timezone || 'Asia/Kolkata',
-            theme: profile.theme || 'auto',
-            timeFormat: profile.timeFormat || '12h',
-          };
-          setUser(newUser);
-          localStorage.setItem('notendo_user', JSON.stringify(newUser));
-          toast.success('Logged in successfully!');
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-        // Fallback for error
+      const response = await fetch(`/api/db/users/${fullPhone}`);
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Verify OTP: User profile fetch failed:', response.status, text);
+        throw new Error('Failed to fetch profile');
+      }
+      const profile = await response.json();
+      
+      if (!profile.name) {
+        // New user or missing name
         setTempUser({
           uid: fullPhone,
           phoneNumber: fullPhone,
           timezone: 'Asia/Kolkata',
           theme: 'auto',
           timeFormat: '12h',
+          token,
         });
         setIsCompletingProfile(true);
+      } else {
+        // Existing user
+        const newUser: CustomUser = {
+          uid: fullPhone,
+          phoneNumber: fullPhone,
+          name: profile.name,
+          timezone: profile.timezone || 'Asia/Kolkata',
+          theme: profile.theme || 'auto',
+          timeFormat: profile.timeFormat || '12h',
+          token,
+        };
+        setUser(newUser);
+        localStorage.setItem('notendo_user', JSON.stringify(newUser));
+        toast.success('Logged in successfully!');
       }
-    } else {
-      toast.error('Invalid OTP. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid OTP. Please try again.');
     }
   };
 
@@ -591,7 +592,6 @@ export default function App() {
     setUser(null);
     localStorage.removeItem('notendo_user');
     setIsOtpSent(false);
-    setSentOtp(null);
     setOtp('');
     setLoginPhone('');
     toast.success('Logged out');
