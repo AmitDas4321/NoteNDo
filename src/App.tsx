@@ -345,6 +345,11 @@ export default function App() {
     try {
       // Check if account still exists
       const userCheckRes = await fetch(`/api/db/users/${user.uid}`);
+      if (!userCheckRes.ok) {
+        const text = await userCheckRes.text();
+        console.error('User check failed:', userCheckRes.status, text);
+        return;
+      }
       const userData = await userCheckRes.json();
       
       if (!userData || Object.keys(userData).length === 0) {
@@ -358,6 +363,12 @@ export default function App() {
       }
 
       const response = await fetch(`/api/db/todos?userId=${user.uid}`);
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Fetch todos failed:', response.status, text);
+        return;
+      }
+      
       const data = await response.json();
       if (data && !data.error) {
         const todoList = Object.entries(data).map(([id, value]: [string, any]) => ({
@@ -426,6 +437,11 @@ export default function App() {
       
       try {
         const response = await fetch(`/api/db/users/${fullPhone}`);
+        if (!response.ok) {
+          const text = await response.text();
+          console.error('Verify OTP: User profile fetch failed:', response.status, text);
+          throw new Error('Failed to fetch profile');
+        }
         const profile = await response.json();
         
         if (!profile.name) {
@@ -474,7 +490,7 @@ export default function App() {
     if (!newName.trim() || !tempUser) return;
 
     try {
-      await fetch(`/api/db/users/${tempUser.uid}`, {
+      const response = await fetch(`/api/db/users/${tempUser.uid}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -485,6 +501,12 @@ export default function App() {
           timeFormat: '12h',
         }),
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Complete profile failed:', response.status, text);
+        throw new Error('Failed to complete profile');
+      }
 
       const newUser: CustomUser = {
         ...tempUser,
@@ -820,19 +842,20 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+              <div 
+                className={`flex flex-col space-y-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-slate-700 select-none`}
+                onClick={() => setReminderEnabled(!reminderEnabled)}
+              >
                 <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setReminderEnabled(!reminderEnabled)}
+                  <div
                     className={`p-2.5 rounded-xl transition-all ${reminderEnabled ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}
                   >
                     {reminderEnabled ? <Bell size={20} /> : <BellOff size={20} />}
-                  </button>
+                  </div>
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">WhatsApp Reminder</span>
                 </div>
                 {reminderEnabled && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="date"
                       value={reminderDate}
@@ -849,7 +872,7 @@ export default function App() {
                 )}
               </div>
 
-              <div className="relative flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <label className={`relative flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden transition-all ${!selectedFile ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700' : ''}`}>
                 <div className="p-2.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded-xl">
                   <Upload size={20} />
                 </div>
@@ -861,25 +884,29 @@ export default function App() {
                       </span>
                       <button 
                         type="button" 
-                        onClick={() => setSelectedFile(null)}
-                        className="text-slate-400 hover:text-red-500"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                        }}
+                        className="text-slate-400 hover:text-red-500 p-1"
                       >
                         <X size={16} />
                       </button>
                     </div>
                   ) : (
-                    <label className="text-sm font-medium text-slate-400 cursor-pointer block w-full">
+                    <span className="text-sm font-medium text-slate-400 block w-full">
                       Upload Image
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        className="hidden"
-                      />
-                    </label>
+                    </span>
                   )}
                 </div>
-              </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+              </label>
             </div>
 
             <button
