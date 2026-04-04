@@ -963,15 +963,16 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   drag={isMobile ? "x" : false}
-                  dragConstraints={{ left: -100, right: 100 }}
-                  dragElastic={0.1}
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.7}
+                  dragSnapToOrigin={true}
                   onDragStart={() => isMobile && setDraggingId(todo.id)}
                   onDragEnd={(_, info) => {
                     if (!isMobile) return;
                     setDraggingId(null);
-                    if (info.offset.x < -70) {
+                    if (info.offset.x < -100) {
                       setShowDeleteConfirm(todo.id);
-                    } else if (info.offset.x > 70) {
+                    } else if (info.offset.x > 100) {
                       toggleTodo(todo.id, todo.completed);
                     }
                   }}
