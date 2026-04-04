@@ -48,7 +48,7 @@ http://localhost:3000
 ## 📸 Preview
 
 <p align="center">
-  <img src="./public/preview.png" alt="NoteNDo Preview" width="800">
+  <img src="./public/preview.png" alt="NoteNDo Preview Image" width="800">
 </p>
 
 ---
