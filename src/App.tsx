@@ -56,6 +56,17 @@ export default function App() {
   const [tempUser, setTempUser] = useState<CustomUser | null>(null);
   const [newName, setNewName] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const countries = [
   { code: '+1', name: "Canada" },
@@ -923,64 +934,100 @@ export default function App() {
         <section className="space-y-4">
           <AnimatePresence mode="popLayout">
             {todos.map((todo) => (
-              <motion.div
-                key={todo.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={`group flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${todo.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}
-              >
-                <div className="flex items-center space-x-5 flex-1">
-                  <button
-                    onClick={() => toggleTodo(todo.id, todo.completed)}
-                    className={`transition-all transform hover:scale-110 ${todo.completed ? 'text-emerald-500' : 'text-slate-200 dark:text-slate-700 hover:text-indigo-500'}`}
-                  >
-                    {todo.completed ? <CheckCircle size={32} /> : <Circle size={32} />}
-                  </button>
-                  <div className="flex-1">
-                    <p className={`text-xl font-semibold text-slate-900 dark:text-white ${todo.completed ? 'line-through text-slate-400 dark:text-slate-600' : ''}`}>
-                      {todo.text}
-                    </p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      {todo.reminderEnabled && (
-                        <div className="flex flex-wrap gap-2">
-                          {(todo.reminderDate || todo.reminderTime) && (
-                            <span className="flex items-center text-xs text-indigo-500 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-lg">
-                              <Bell size={12} className="mr-1" />
-                              {todo.reminderDate ? todo.reminderDate.split('-').reverse().join('/') : ''} {formatTime(todo.reminderTime)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                        {todo.createdAt && !isNaN(new Date(todo.createdAt).getTime()) 
-                          ? new Date(todo.createdAt).toLocaleDateString('en-GB') 
-                          : 'No Date'}
-                      </span>
+              <div key={todo.id} className="relative overflow-hidden rounded-2xl group">
+                {/* Swipe Backgrounds - Only on Mobile */}
+                {isMobile && (
+                  <>
+                    <div className={`absolute inset-0 flex items-center justify-between px-8 rounded-2xl transition-opacity duration-200 ${draggingId === todo.id ? 'opacity-100' : 'opacity-0'}`}>
+                      {/* Right Swipe (Complete) */}
+                      <div className="flex items-center space-x-2 text-emerald-500">
+                        <CheckCircle size={24} />
+                      </div>
+                      {/* Left Swipe (Delete) */}
+                      <div className="flex items-center space-x-2 text-rose-500">
+                        <Trash2 size={24} />
+                      </div>
+                    </div>
+                    
+                    {/* Visual Background Colors */}
+                    <div className={`absolute inset-0 flex rounded-2xl overflow-hidden transition-opacity duration-200 ${draggingId === todo.id ? 'opacity-100' : 'opacity-0'}`}>
+                      <div className="flex-1 bg-emerald-500/10 dark:bg-emerald-500/5" />
+                      <div className="flex-1 bg-rose-500/10 dark:bg-rose-500/5" />
+                    </div>
+                  </>
+                )}
+
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  drag={isMobile ? "x" : false}
+                  dragConstraints={{ left: -100, right: 100 }}
+                  dragElastic={0.1}
+                  onDragStart={() => isMobile && setDraggingId(todo.id)}
+                  onDragEnd={(_, info) => {
+                    if (!isMobile) return;
+                    setDraggingId(null);
+                    if (info.offset.x < -70) {
+                      setShowDeleteConfirm(todo.id);
+                    } else if (info.offset.x > 70) {
+                      toggleTodo(todo.id, todo.completed);
+                    }
+                  }}
+                  className={`relative z-10 flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all ${todo.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                >
+                  <div className="flex items-center space-x-5 flex-1">
+                    <button
+                      onClick={() => toggleTodo(todo.id, todo.completed)}
+                      className={`transition-all transform hover:scale-110 ${todo.completed ? 'text-emerald-500' : 'text-slate-200 dark:text-slate-700 hover:text-indigo-500'}`}
+                    >
+                      {todo.completed ? <CheckCircle size={32} /> : <Circle size={32} />}
+                    </button>
+                    <div className="flex-1">
+                      <p className={`text-xl font-semibold text-slate-900 dark:text-white ${todo.completed ? 'line-through text-slate-400 dark:text-slate-600' : ''}`}>
+                        {todo.text}
+                      </p>
+                      <div className="flex items-center space-x-4 mt-2">
+                        {todo.reminderEnabled && (
+                          <div className="flex flex-wrap gap-2">
+                            {(todo.reminderDate || todo.reminderTime) && (
+                              <span className="flex items-center text-xs text-indigo-500 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-lg">
+                                <Bell size={12} className="mr-1" />
+                                {todo.reminderDate ? todo.reminderDate.split('-').reverse().join('/') : ''} {formatTime(todo.reminderTime)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                          {todo.createdAt && !isNaN(new Date(todo.createdAt).getTime()) 
+                            ? new Date(todo.createdAt).toLocaleDateString('en-GB') 
+                            : 'No Date'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {todo.imageUrl && (
-                    <a 
-                      href={todo.imageUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2.5 bg-slate-50 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"
+                  <div className="flex items-center space-x-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    {todo.imageUrl && (
+                      <a 
+                        href={todo.imageUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl transition-all"
+                      >
+                        <ImageIcon size={20} />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => setShowDeleteConfirm(todo.id)}
+                      className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all"
                     >
-                      <ImageIcon size={20} />
-                    </a>
-                  )}
-                  <button
-                    onClick={() => setShowDeleteConfirm(todo.id)}
-                    className="p-2.5 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </motion.div>
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
             ))}
           </AnimatePresence>
 
