@@ -228,12 +228,30 @@ npm start
 ### Environment Variables
 
 ```
-APP_URL=https://your-app.onrender.com
-TEXTSNAP_INSTANCE_ID=your_id
-TEXTSNAP_ACCESS_TOKEN=your_token
-FIREBASE_DATABASE_URL=your_db_url
-FIREBASE_DATABASE_SECRET=your_secret
-NODE_ENV=production
+# ===============================================
+# NOTE N DO - ENVIRONMENT CONFIGURATION
+# Version: 1.0.0
+# Author: Amit Das
+# ===============================================
+
+# APPLICATION URL
+# The public URL where this application is hosted.
+# Used for API callbacks, redirects, and internal references.
+APP_URL=https://example.com
+
+
+# TEXTSNAP API CONFIGURATION
+# Credentials required for sending WhatsApp messages via TextSnap API.
+TEXTSNAP_INSTANCE_ID=
+TEXTSNAP_ACCESS_TOKEN=
+
+
+# FIREBASE REALTIME DATABASE CONFIGURATION
+# Base URL of your Firebase Realtime Database.
+FIREBASE_DATABASE_URL=
+
+# Secret key used for authenticating requests to Firebase.
+FIREBASE_DATABASE_SECRET=
 ```
 
 ---
