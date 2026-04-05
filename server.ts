@@ -196,10 +196,22 @@ async function startServer() {
   app.post("/api/db/todos", async (req, res) => {
     try {
       const { url: dbUrl, secret: dbSecret } = getDbConfig();
+      const body = { ...req.body };
+       if (
+        body.imageUrl &&
+        body.imageUrl.includes("tmpfiles.org") &&
+        !body.imageUrl.includes("/dl/")
+      ) {
+        body.imageUrl = body.imageUrl.replace(
+          "https://tmpfiles.org/",
+          "https://tmpfiles.org/dl/"
+        );
+      }
+      
       const response = await fetch(`${dbUrl}/todos.json?auth=${dbSecret}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(body),
       });
       const data = await response.json();
       res.json(data);
