@@ -86,7 +86,11 @@ async function startServer() {
   // Proxy for WhatsApp API
   app.post("/api/whatsapp/send", async (req, res) => {
     try {
-      const { number, type, message, media_url, instance_id, access_token } = req.body;
+      let { number, type, message, media_url, instance_id, access_token } = req.body;
+      
+      if (media_url && media_url.includes("tmpfiles.org") && !media_url.includes("/dl/")) {
+        media_url = media_url.replace(/https?:\/\/tmpfiles\.org\//, "https://tmpfiles.org/dl/");
+      }
       
       const response = await fetch('https://textsnap.in/api/send', {
         method: 'POST',
@@ -203,7 +207,7 @@ async function startServer() {
         !body.imageUrl.includes("/dl/")
       ) {
         body.imageUrl = body.imageUrl.replace(
-          "https://tmpfiles.org/",
+          /https?:\/\/tmpfiles\.org\//,
           "https://tmpfiles.org/dl/"
         );
       }
@@ -370,15 +374,20 @@ async function startServer() {
             // Send WhatsApp
             const message = `🔔 *Reminder: ${todo.text}*\n\n_This is a friendly reminder from NoteNDo._`;
             
+            let finalImageUrl = todo.imageUrl;
+            if (finalImageUrl && finalImageUrl.includes("tmpfiles.org") && !finalImageUrl.includes("/dl/")) {
+              finalImageUrl = finalImageUrl.replace(/https?:\/\/tmpfiles\.org\//, "https://tmpfiles.org/dl/");
+            }
+
             try {
               const waResponse = await fetch('https://textsnap.in/api/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   number: todo.phoneNumber,
-                  type: todo.imageUrl ? 'media' : 'text',
+                  type: finalImageUrl ? 'media' : 'text',
                   message: message,
-                  media_url: todo.imageUrl || undefined,
+                  media_url: finalImageUrl || undefined,
                   instance_id: process.env.TEXTSNAP_INSTANCE_ID,
                   access_token: process.env.TEXTSNAP_ACCESS_TOKEN,
                 }),

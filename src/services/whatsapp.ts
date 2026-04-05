@@ -27,6 +27,10 @@ export async function sendWhatsAppImage(
   message: string
 ) {
   try {
+    let finalUrl = mediaUrl;
+    if (finalUrl && finalUrl.includes("tmpfiles.org") && !finalUrl.includes("/dl/")) {
+      finalUrl = finalUrl.replace(/https?:\/\/tmpfiles\.org\//, "https://tmpfiles.org/dl/");
+    }
     const response = await fetch('/api/whatsapp/send', {
       method: 'POST',
       headers: {
@@ -35,7 +39,7 @@ export async function sendWhatsAppImage(
       body: JSON.stringify({
         number,
         type: 'image',
-        media_url: mediaUrl,
+        media_url: finalUrl,
         message,
       }),
     });
